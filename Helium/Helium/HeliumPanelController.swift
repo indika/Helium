@@ -10,6 +10,23 @@ import AppKit
 
 let optionKeyCode: UInt16 = 58
 
+class URLField: NSTextField {
+	override func mouseDown(with event: NSEvent) {
+		super.mouseDown(with: event)
+		if let textEditor = currentEditor() {
+			textEditor.selectAll(self)
+		}
+	}
+
+	convenience init(string: String?) {
+		self.init()
+
+		if let string = string { self.stringValue = string }
+		self.lineBreakMode = NSLineBreakMode.byTruncatingHead
+		self.usesSingleLineMode = true
+	}
+}
+
 class HeliumPanelController : NSWindowController {
 
     fileprivate var webViewController: WebViewController {
@@ -179,9 +196,17 @@ class HeliumPanelController : NSWindowController {
     }
     
     @IBAction fileprivate func openLocationPress(_ sender: AnyObject) {
-        didRequestLocation()
+		didRequestUserUrl(
+			currentURL: self.webViewController.currentURL,
+			messageText: "Enter Destination URL",
+			acceptTitle: "Load",
+			cancelTitle: "Cancel",
+			acceptHandler: { (newUrl: String) in
+				self.webViewController.loadURL(text: newUrl)
+			}
+		)
     }
-    
+
     @IBAction fileprivate func openFilePress(_ sender: AnyObject) {
         didRequestFile()
     }
@@ -206,11 +231,25 @@ class HeliumPanelController : NSWindowController {
     }
 
     @IBAction func setHomePage(_ sender: AnyObject){
-        didRequestChangeHomepage()
+		didRequestUserUrl(
+			currentURL: UserDefaults.standard.string(forKey: UserSetting.homePageURL.userDefaultsKey),
+			messageText: "Enter new Home Page URL",
+			acceptTitle: "Set",
+			cancelTitle: "Cancel",
+			acceptHandler: { (newUrlConstant: String) in
+				var newUrl = newUrlConstant
+
+				if !(newUrl.lowercased().hasPrefix("http://") || newUrl.lowercased().hasPrefix("https://")) {
+					newUrl = "http://" + newUrl
+				}
+
+				// Save to defaults and loads it
+				UserDefaults.standard.set(newUrl, forKey: UserSetting.homePageURL.userDefaultsKey)
+				self.webViewController.loadURL(text: newUrl)
+		})
     }
     
     //MARK: Actual functionality
-    
     @objc fileprivate func didUpdateTitle(_ notification: Notification) {
         if let title = notification.object as? String {
             panel.title = title
@@ -218,7 +257,6 @@ class HeliumPanelController : NSWindowController {
     }
     
     fileprivate func didRequestFile() {
-        
         let open = NSOpenPanel()
         open.allowsMultipleSelection = false
         open.canChooseFiles = true
@@ -226,79 +264,49 @@ class HeliumPanelController : NSWindowController {
         
         if open.runModal() == NSModalResponseOK {
             if let url = open.url {
-                webViewController.loadURL(url)
+				webViewController.loadURL(url: url)
             }
         }
     }
-    
-    
-    fileprivate func didRequestLocation() {
-        let alert = NSAlert()
-        alert.alertStyle = NSAlertStyle.informational
-        alert.messageText = "Enter Destination URL"
-        
-        let urlField = NSTextField()
-        urlField.frame = NSRect(x: 0, y: 0, width: 300, height: 20)
-        urlField.lineBreakMode = NSLineBreakMode.byTruncatingHead
-        urlField.usesSingleLineMode = true
-        
-        alert.accessoryView = urlField
-        alert.accessoryView!.becomeFirstResponder()
-        alert.addButton(withTitle: "Load")
-        alert.addButton(withTitle: "Cancel")
-        alert.beginSheetModal(for: self.window!, completionHandler: { response in
-            if response == NSAlertFirstButtonReturn {
-                // Load
-                let text = (alert.accessoryView as! NSTextField).stringValue
-                self.webViewController.loadAlmostURL(text)
-            }
-        })
-    }
-    
-    func didRequestChangeHomepage(){
-        let alert = NSAlert()
-        alert.alertStyle = NSAlertStyle.informational
-        alert.messageText = "Enter new Home Page URL"
-        
-        let urlField = NSTextField()
-        urlField.frame = NSRect(x: 0, y: 0, width: 300, height: 20)
-        urlField.lineBreakMode = NSLineBreakMode.byTruncatingHead
-        urlField.usesSingleLineMode = true
-        
-        alert.accessoryView = urlField
-        alert.addButton(withTitle: "Set")
-        alert.addButton(withTitle: "Cancel")
-        alert.beginSheetModal(for: self.window!, completionHandler: { response in
-            if response == NSAlertFirstButtonReturn {
-                var text = (alert.accessoryView as! NSTextField).stringValue
-                
-                // Add prefix if necessary
-                if !(text.lowercased().hasPrefix("http://") || text.lowercased().hasPrefix("https://")) {
-                    text = "http://" + text
-                }
 
-                // Save to defaults if valid. Else, use Helium default page
-                if self.validateURL(text) {
-                    UserDefaults.standard.set(text, forKey: UserSetting.homePageURL.userDefaultsKey)
-                }
-                else{
-                    UserDefaults.standard.set("https://cdn.rawgit.com/JadenGeller/Helium/master/helium_start.html", forKey: UserSetting.homePageURL.userDefaultsKey)
-                }
-                
-                // Load new Home page
-                self.webViewController.loadAlmostURL(UserDefaults.standard.string(forKey: UserSetting.homePageURL.userDefaultsKey)!)
-            }
-        })
-    }
-    
-    func validateURL (_ stringURL : String) -> Bool {
-        
-        let urlRegEx = "((https|http)://)((\\w|-)+)(([.]|[/])((\\w|-)+))+"
-        let predicate = NSPredicate(format:"SELF MATCHES %@", argumentArray:[urlRegEx])
-        
-        return predicate.evaluate(with: stringURL)
-    }
-        
+	func validateURL (_ stringURL : String) -> Bool {
+		let urlRegEx = "(https?://)?((\\w|-)+)(([.]|[/])((\\w|-)+))+"
+		let predicate = NSPredicate(format:"SELF MATCHES %@", argumentArray:[urlRegEx])
+
+		return predicate.evaluate(with: stringURL)
+	}
+
+	/// Shows alert asking user to input URL
+	/// And validate it
+	fileprivate func didRequestUserUrl(currentURL: String?, messageText: String, acceptTitle: String, cancelTitle: String, acceptHandler: @escaping (String) -> Void) {
+		// Create alert
+		let alert = NSAlert()
+		alert.alertStyle = NSAlertStyle.informational
+		alert.messageText = messageText
+
+		// Create urlField
+		let urlField = URLField(string: currentURL)
+		urlField.frame = NSRect(x: 0, y: 0, width: 300, height: 20)
+
+		// Add urlField and buttons to alert
+		alert.accessoryView = urlField
+		alert.addButton(withTitle: acceptTitle)
+		alert.addButton(withTitle: cancelTitle)
+
+		alert.beginSheetModal(for: self.window!, completionHandler: { response in
+			// first button is accept
+			if response == NSAlertFirstButtonReturn {
+				let newUrl = (alert.accessoryView as! NSTextField).stringValue
+				if self.validateURL(newUrl) {
+					acceptHandler(newUrl)
+				}
+			}
+		})
+
+		// Set focus on urlField
+		alert.accessoryView!.becomeFirstResponder()
+	}
+
     @objc fileprivate func didBecomeActive() {
         panel.ignoresMouseEvents = false
     }

@@ -17,7 +17,7 @@ class WebViewController: NSViewController, WKNavigationDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.loadURLObject(_:)), name: NSNotification.Name(rawValue: "HeliumLoadURL"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.loadURL(urlObject:)), name: NSNotification.Name(rawValue: "HeliumLoadURL"), object: nil)
         
         // Layout webview
         view.addSubview(webView)
@@ -105,27 +105,32 @@ class WebViewController: NSViewController, WKNavigationDelegate {
         zoomOut()
     }
     
-    internal func loadAlmostURL(_ text: String) {
-        var text = text
-        if !(text.lowercased().hasPrefix("http://") || text.lowercased().hasPrefix("https://")) {
-            text = "http://" + text
-        }
-        
-        if let url = URL(string: text) {
-            loadURL(url)
-        }
-        
-    }
-    
-    // MARK: Loading
-    
-    internal func loadURL(_ url:URL) {
+    // MARK: - URL management
+	internal var currentURL: String? {
+		get {
+			return webView.url?.absoluteString
+		}
+	}
+
+	internal func loadURL(text: String) {
+		var text = text
+		if !(text.lowercased().hasPrefix("http://") || text.lowercased().hasPrefix("https://")) {
+			text = "http://" + text
+		}
+
+		if let url = URL(string: text) {
+			loadURL(url: url)
+		}
+
+	}
+
+    internal func loadURL(url: URL) {
         webView.load(URLRequest(url: url))
     }
     
-    func loadURLObject(_ urlObject : Notification) {
+    func loadURL(urlObject : Notification) {
         if let url = urlObject.object as? URL {
-            loadAlmostURL(url.absoluteString);
+            loadURL(text: url.absoluteString);
         }
     }
     
@@ -137,10 +142,9 @@ class WebViewController: NSViewController, WKNavigationDelegate {
     func clear() {
         // Reload to home page (or default if no URL stored in UserDefaults)
         if let homePage = UserDefaults.standard.string(forKey: UserSetting.homePageURL.userDefaultsKey) {
-            loadAlmostURL(homePage)
-        }
-        else{
-            loadURL(URL(string: "https://cdn.rawgit.com/JadenGeller/Helium/master/helium_start.html")!)
+            loadURL(text: homePage)
+        } else {
+			loadURL(text: "https://cdn.rawgit.com/JadenGeller/Helium/master/helium_start.html")
         }
     }
 
@@ -153,7 +157,6 @@ class WebViewController: NSViewController, WKNavigationDelegate {
     
     // MARK: - Redirect magic urls
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        
 		if shouldRedirect {
 			if let url = navigationAction.request.url, let host = url.host {
 				let urlString = url.absoluteString
@@ -214,7 +217,7 @@ class WebViewController: NSViewController, WKNavigationDelegate {
 
 				if (modified.host != nil) {
 					decisionHandler(WKNavigationActionPolicy.cancel)
-					loadURL(modified.url!)
+					loadURL(url: modified.url!)
 					return
 				}
 			}
