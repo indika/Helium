@@ -10,7 +10,7 @@ import AppKit
 
 let optionKeyCode: UInt16 = 58
 
-class URLField: NSTextField {
+fileprivate class URLField: NSTextField {
 	override func mouseDown(with event: NSEvent) {
 		super.mouseDown(with: event)
 		if let textEditor = currentEditor() {
@@ -34,49 +34,6 @@ class HeliumPanelController : NSWindowController {
             return self.window?.contentViewController as! WebViewController
         }
     }
-
-    fileprivate var mouseOver: Bool = false
-    
-    fileprivate var alpha: CGFloat = 0.6 { //default
-        didSet {
-            updateTranslucency()
-        }
-    }
-    
-    fileprivate var translucencyPreference: TranslucencyPreference = .always {
-        didSet {
-            updateTranslucency()
-        }
-    }
-    
-    fileprivate var translucencyEnabled: Bool = false {
-        didSet {
-            updateTranslucency()
-        }
-    }
-
-    
-    fileprivate  enum TranslucencyPreference {
-        case always
-        case mouseOver
-        case mouseOutside
-    }
-    
-    fileprivate var currentlyTranslucent: Bool = false {
-        didSet {
-            if !NSApplication.shared().isActive {
-                panel.ignoresMouseEvents = currentlyTranslucent
-            }
-            if currentlyTranslucent {
-                panel.animator().alphaValue = alpha
-                panel.isOpaque = false
-            }
-            else {
-                panel.isOpaque = true
-                panel.animator().alphaValue = 1
-            }
-        }
-    }
     
     
     fileprivate var panel: NSPanel! {
@@ -95,7 +52,13 @@ class HeliumPanelController : NSWindowController {
         NotificationCenter.default.addObserver(self, selector: #selector(HeliumPanelController.didUpdateTitle(_:)), name: Notification.Name(rawValue: "HeliumUpdateTitle"), object: nil)
         
         setFloatOverFullScreenApps()
-        didUpdateAlpha(CGFloat(UserSettings.opacityPercentage.value))
+
+		// MARK: Load settings from UserSettings
+		didUpdateAlpha(CGFloat(UserSettings.opacityPercentage.value))
+
+		if let prefernce = TranslucencyPreference(rawValue: UserSettings.translucencyPreference.value) {
+			translucencyPreference = prefernce
+		}
     }
 
     // MARK : Mouse events
@@ -110,20 +73,57 @@ class HeliumPanelController : NSWindowController {
     }
     
     // MARK : Translucency
-    fileprivate func updateTranslucency() {
-        currentlyTranslucent = shouldBeTranslucent()
-    }
-    
+	fileprivate var mouseOver: Bool = false
+
+	fileprivate var alpha: CGFloat = 0 {
+		didSet {
+			updateTranslucency()
+		}
+	}
+
+	fileprivate var translucencyPreference: TranslucencyPreference = .never {
+		didSet {
+			UserSettings.translucencyPreference.value = translucencyPreference.rawValue
+			updateTranslucency()
+		}
+	}
+
+	fileprivate enum TranslucencyPreference: Int {
+		case never = 0
+		case always = 1
+		case mouseOver = 2
+		case mouseOutside = 3
+	}
+
+	fileprivate func updateTranslucency() {
+		currentlyTranslucent = shouldBeTranslucent()
+	}
+
+	fileprivate var currentlyTranslucent: Bool = false {
+		didSet {
+			if !NSApplication.shared().isActive {
+				panel.ignoresMouseEvents = currentlyTranslucent
+			}
+			if currentlyTranslucent {
+				panel.animator().alphaValue = alpha
+				panel.isOpaque = false
+			}
+			else {
+				panel.isOpaque = true
+				panel.animator().alphaValue = 1
+			}
+		}
+	}
+
     fileprivate func shouldBeTranslucent() -> Bool {
         /* Implicit Arguments
          * - mouseOver
          * - translucencyPreference
-         * - tranlucencyEnalbed
          */
-        
-        guard translucencyEnabled else { return false }
-        
+
         switch translucencyPreference {
+		case .never:
+			return false
         case .always:
             return true
         case .mouseOver:
@@ -143,7 +143,7 @@ class HeliumPanelController : NSWindowController {
         }
     }
     
-    //MARK: IBActions
+    // MARK: IBActions
     
     fileprivate func disabledAllMouseOverPreferences(_ allMenus: [NSMenuItem]) {
         // GROSS HARD CODED
@@ -151,7 +151,13 @@ class HeliumPanelController : NSWindowController {
             x.state = NSOffState
         }
     }
-    
+
+	@IBAction fileprivate func neverPreferencePress(_ sender: NSMenuItem) {
+		disabledAllMouseOverPreferences(sender.menu!.items)
+		translucencyPreference = .never
+		sender.state = NSOnState
+	}
+
     @IBAction fileprivate func alwaysPreferencePress(_ sender: NSMenuItem) {
         disabledAllMouseOverPreferences(sender.menu!.items)
         translucencyPreference = .always
@@ -168,17 +174,6 @@ class HeliumPanelController : NSWindowController {
         disabledAllMouseOverPreferences(sender.menu!.items)
         translucencyPreference = .mouseOutside
         sender.state = NSOnState
-    }
-    
-    @IBAction fileprivate func translucencyPress(_ sender: NSMenuItem) {
-        if sender.state == NSOnState {
-            sender.state = NSOffState
-            didDisableTranslucency()
-        }
-        else {
-            sender.state = NSOnState
-            didEnableTranslucency()
-        }
     }
     
     @IBAction fileprivate func percentagePress(_ sender: NSMenuItem) {
@@ -314,15 +309,7 @@ class HeliumPanelController : NSWindowController {
             panel.ignoresMouseEvents = true
         }
     }
-    
-    fileprivate func didEnableTranslucency() {
-        translucencyEnabled = true
-    }
-    
-    fileprivate func didDisableTranslucency() {
-        translucencyEnabled = false
-    }
-    
+
     fileprivate func didUpdateAlpha(_ newAlpha: CGFloat) {
         alpha = newAlpha / 100
     }

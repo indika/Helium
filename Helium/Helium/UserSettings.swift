@@ -43,7 +43,12 @@ internal class Setting<T> {
 
 internal struct UserSettings {
 	static let disabledMagicURLs = Setting<Bool>("disabledMagicURLs", defaultValue: false)
+
 	static let disabledFullScreenFloat = Setting<Bool>("disabledFullScreenFloat", defaultValue: false)
-	static let opacityPercentage = Setting<Int>("opacityPercentage", defaultValue: 40)
+
+	static let opacityPercentage = Setting<Int>("opacityPercentage", defaultValue: 60)
+	// See values in HeliumPanelController.TranslucencyPreference
+	static let translucencyPreference = Setting<Int>("rawTranslucencyPreference", defaultValue: 0)
+
 	static let homePageURL = Setting<String>("homePageURL", defaultValue: "https://cdn.rawgit.com/JadenGeller/Helium/master/helium_start.html")
 }
