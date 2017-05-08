@@ -113,15 +113,10 @@ class WebViewController: NSViewController, WKNavigationDelegate {
 	}
 
 	internal func loadURL(text: String) {
-		var text = text
-		if !(text.lowercased().hasPrefix("http://") || text.lowercased().hasPrefix("https://")) {
-			text = "http://" + text
-		}
-
+		let text = UrlHelpers.ensureScheme(text)
 		if let url = URL(string: text) {
 			loadURL(url: url)
 		}
-
 	}
 
     internal func loadURL(url: URL) {
@@ -153,72 +148,18 @@ class WebViewController: NSViewController, WKNavigationDelegate {
     
     // MARK: - Redirect magic urls
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-		if shouldRedirect {
-			if let url = navigationAction.request.url, let host = url.host {
-				let urlString = url.absoluteString
-				var modified = URLComponents()
-				modified.scheme = url.scheme
-
-				// MARK: YouTube
-				if host.contains("youtu") {
-					// (video id) (hours)?(minutes)?(seconds)
-					let YTRegExp = try! NSRegularExpression(pattern: "(?:https?://)?(?:www\\.)?(?:youtube\\.com/watch\\?v=|youtu.be/)([\\w\\_\\-]+)(?:[&?]t=(?:(\\d+)h)?(?:(\\d+)m)?(?:(\\d+)s?))?")
-					if let match = YTRegExp.firstMatch(in: urlString, range: urlString.nsrange) {
-						modified.host = "youtube.com"
-						modified.path = "/embed/" + urlString.substring(with: match.rangeAt(1))!
-
-						var start = 0
-						var multiplier = 60 * 60
-						for idx in 2...4 {
-							if let tStr = urlString.substring(with: match.rangeAt(idx)), let tInt = Int(tStr) {
-								start += tInt * multiplier
-							}
-							multiplier /= 60
-						}
-						if start != 0 {
-							modified.query = "start=" + String(start)
-						}
-					}
-				} else // MARK: Twitch
-					if host.contains("twitch.tv") {
-					let TwitchRegExp = try! NSRegularExpression(pattern: "https?://(?:www\\.)?twitch\\.tv/([\\w\\d\\_]+)(?:/(\\d+))?");
-					if let match = TwitchRegExp.firstMatch(in: urlString, range: urlString.nsrange), let channel = urlString.substring(with:match.rangeAt(1)) {
-						switch(channel) {
-						case "directory", "products", "p", "user":
-							break
-						case "videos":
-							if let idString = urlString.substring(with:match.rangeAt(2)) {
-								modified.host = "player.twitch.tv"
-								modified.query = "html5&video=v" + idString
-							}
-						default:
-							modified.host = "player.twitch.tv"
-							modified.query = "html5&channel=" + channel
-						}
-					}
-				} else {
-					var urlStringModified = urlString
-
-					// MARK: Vimeo, Youku, Dailymotion
-					urlStringModified = urlStringModified.replacingOccurrences(of: "(?:https?://)?(?:www\\.)?vimeo\\.com/(\\d+)", with: "https://player.vimeo.com/video/$1", options: .regularExpression)
-
-					urlStringModified = urlStringModified.replacePrefix("http://v.youku.com/v_show/id_", replacement: "http://player.youku.com/embed/")
-					urlStringModified = urlStringModified.replacePrefix("http://www.dailymotion.com/video/", replacement: "http://www.dailymotion.com/embed/video/")
-					urlStringModified = urlStringModified.replacePrefix("http://dai.ly/", replacement: "http://www.dailymotion.com/embed/video/")
-
-					if urlStringModified != urlString {
-						modified = URLComponents(string: urlStringModified)!
-					}
-				}
-
-				if (modified.host != nil) {
-					decisionHandler(WKNavigationActionPolicy.cancel)
-					loadURL(url: modified.url!)
-					return
-				}
-			}
+		guard shouldRedirect, let url = navigationAction.request.url else {
+			decisionHandler(WKNavigationActionPolicy.allow)
+			return
 		}
-		decisionHandler(WKNavigationActionPolicy.allow)
+
+		let magicUrl = UrlHelpers.Magic(url)
+		if let newUrl = magicUrl.newUrl {
+			decisionHandler(WKNavigationActionPolicy.cancel)
+			loadURL(url: newUrl)
+		} else {
+			decisionHandler(WKNavigationActionPolicy.allow)
+		}
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation) {
