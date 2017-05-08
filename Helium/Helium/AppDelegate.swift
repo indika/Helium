@@ -25,15 +25,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        magicURLMenu.state = UserDefaults.standard.bool(forKey: UserSetting.disabledMagicURLs.userDefaultsKey) ? NSOffState : NSOnState
+        magicURLMenu.state = UserSettings.disabledMagicURLs.value ? NSOffState : NSOnState
         
-        fullScreenFloatMenu.state = UserDefaults.standard.bool(forKey: UserSetting.disabledFullScreenFloat.userDefaultsKey) ? NSOffState : NSOnState
-      
-        if let alpha = UserDefaults.standard.object(forKey: UserSetting.opacityPercentage.userDefaultsKey) {
-            let offset = (alpha as! Int)/10 - 1
-            for (index, button) in percentageMenu.submenu!.items.enumerated() {
-                (button ).state = (offset == index) ? NSOnState : NSOffState
-            }
+        fullScreenFloatMenu.state = UserSettings.disabledFullScreenFloat.value ? NSOffState : NSOnState
+
+		let alpha = UserSettings.opacityPercentage.value
+        let offset = alpha/10 - 1
+        for (index, button) in percentageMenu.submenu!.items.enumerated() {
+            (button).state = (offset == index) ? NSOnState : NSOffState
         }
     }
 
@@ -44,7 +43,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     
     @IBAction func magicURLRedirectToggled(_ sender: NSMenuItem) {
         sender.state = (sender.state == NSOnState) ? NSOffState : NSOnState
-        UserDefaults.standard.set((sender.state == NSOffState), forKey: UserSetting.disabledMagicURLs.userDefaultsKey)
+        UserSettings.disabledMagicURLs.value = (sender.state == NSOffState)
     }
     
     

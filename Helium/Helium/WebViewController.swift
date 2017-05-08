@@ -138,20 +138,16 @@ class WebViewController: NSViewController, WKNavigationDelegate {
         webView.reload()
     }
     
-    // MARK: Webview functions
+	// MARK: Webview functions
+	/// Reload to home page (or default if no URL stored in UserDefaults)
     func clear() {
-        // Reload to home page (or default if no URL stored in UserDefaults)
-        if let homePage = UserDefaults.standard.string(forKey: UserSetting.homePageURL.userDefaultsKey) {
-            loadURL(text: homePage)
-        } else {
-			loadURL(text: "https://cdn.rawgit.com/JadenGeller/Helium/master/helium_start.html")
-        }
+		loadURL(text: UserSettings.homePageURL.value)
     }
 
     var webView = WKWebView()
     var shouldRedirect: Bool {
         get {
-            return !UserDefaults.standard.bool(forKey: UserSetting.disabledMagicURLs.userDefaultsKey)
+            return !UserSettings.disabledMagicURLs.value
         }
     }
     

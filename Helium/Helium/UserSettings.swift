@@ -8,18 +8,42 @@
 
 import Foundation
 
-internal enum UserSetting {
-    case disabledMagicURLs
-    case disabledFullScreenFloat
-    case opacityPercentage
-    case homePageURL
+internal class Setting<T> {
+	let key: String
+	let defaultValue: T
 
-    var userDefaultsKey: String {
-        switch self {
-        case .disabledMagicURLs: return "disabledMagicURLs"
-        case .disabledFullScreenFloat: return "disabledFullScreenFloat"
-        case .opacityPercentage: return "opacityPercentage"
-        case .homePageURL: return "homePageURL"
-        }
-    }
+	init(_ userDefaultsKey: String, defaultValue: T) {
+		self.key = userDefaultsKey
+		self.defaultValue = defaultValue
+	}
+
+	var value: T {
+		get {
+			return self.get()
+		}
+		set (value) {
+			self.set(value)
+		}
+	}
+
+	private func get() -> T {
+		if let value = UserDefaults.standard.object(forKey: self.key) as? T {
+			return value
+		} else {
+			// Sets default value if failed
+			set(self.defaultValue)
+			return self.defaultValue
+		}
+	}
+
+	private func set(_ value: T) {
+		UserDefaults.standard.set(value as Any, forKey: self.key)
+	}
+}
+
+internal struct UserSettings {
+	static let disabledMagicURLs = Setting<Bool>("disabledMagicURLs", defaultValue: false)
+	static let disabledFullScreenFloat = Setting<Bool>("disabledFullScreenFloat", defaultValue: false)
+	static let opacityPercentage = Setting<Int>("opacityPercentage", defaultValue: 40)
+	static let homePageURL = Setting<String>("homePageURL", defaultValue: "https://cdn.rawgit.com/JadenGeller/Helium/master/helium_start.html")
 }

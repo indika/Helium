@@ -95,9 +95,7 @@ class HeliumPanelController : NSWindowController {
         NotificationCenter.default.addObserver(self, selector: #selector(HeliumPanelController.didUpdateTitle(_:)), name: Notification.Name(rawValue: "HeliumUpdateTitle"), object: nil)
         
         setFloatOverFullScreenApps()
-        if let alpha = UserDefaults.standard.object(forKey: UserSetting.opacityPercentage.userDefaultsKey) {
-            didUpdateAlpha(CGFloat(alpha as! Int))
-        }
+        didUpdateAlpha(CGFloat(UserSettings.opacityPercentage.value))
     }
 
     // MARK : Mouse events
@@ -137,7 +135,7 @@ class HeliumPanelController : NSWindowController {
     
     
     fileprivate func setFloatOverFullScreenApps() {
-        if UserDefaults.standard.bool(forKey: UserSetting.disabledFullScreenFloat.userDefaultsKey) {
+        if UserSettings.disabledFullScreenFloat.value {
             panel.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
 
         } else {
@@ -185,13 +183,13 @@ class HeliumPanelController : NSWindowController {
     
     @IBAction fileprivate func percentagePress(_ sender: NSMenuItem) {
         for button in sender.menu!.items{
-            (button ).state = NSOffState
+            (button).state = NSOffState
         }
         sender.state = NSOnState
         let value = sender.title.substring(to: sender.title.characters.index(sender.title.endIndex, offsetBy: -1))
         if let alpha = Int(value) {
              didUpdateAlpha(CGFloat(alpha))
-             UserDefaults.standard.set(alpha, forKey: UserSetting.opacityPercentage.userDefaultsKey)
+             UserSettings.opacityPercentage.value = alpha
         }
     }
     
@@ -213,7 +211,7 @@ class HeliumPanelController : NSWindowController {
     
     @IBAction fileprivate func floatOverFullScreenAppsToggled(_ sender: NSMenuItem) {
         sender.state = (sender.state == NSOnState) ? NSOffState : NSOnState
-        UserDefaults.standard.set((sender.state == NSOffState), forKey: UserSetting.disabledFullScreenFloat.userDefaultsKey)
+        UserSettings.disabledFullScreenFloat.value = (sender.state == NSOffState)
         
         setFloatOverFullScreenApps()
     }
@@ -232,7 +230,7 @@ class HeliumPanelController : NSWindowController {
 
     @IBAction func setHomePage(_ sender: AnyObject){
 		didRequestUserUrl(
-			currentURL: UserDefaults.standard.string(forKey: UserSetting.homePageURL.userDefaultsKey),
+			currentURL: UserSettings.homePageURL.value,
 			messageText: "Enter new Home Page URL",
 			acceptTitle: "Set",
 			cancelTitle: "Cancel",
@@ -244,7 +242,7 @@ class HeliumPanelController : NSWindowController {
 				}
 
 				// Save to defaults and loads it
-				UserDefaults.standard.set(newUrl, forKey: UserSetting.homePageURL.userDefaultsKey)
+				UserSettings.homePageURL.value = newUrl
 				self.webViewController.loadURL(text: newUrl)
 		})
     }
