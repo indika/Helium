@@ -1,4 +1,5 @@
 # Helium
+[![Build Status](https://travis-ci.org/stek29/Helium.svg?branch=master)](https://travis-ci.org/stek29/Helium)
 
 Helium is a floating browser window that allows you to watch media, browse the
 web and do much more while you stay productive. Your content will never fall
