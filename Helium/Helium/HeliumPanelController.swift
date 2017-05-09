@@ -27,24 +27,38 @@ fileprivate class URLField: NSTextField {
 	}
 }
 
-class HeliumPanelController : NSWindowController {
+class HeliumPanelController: NSWindowController {
 
     fileprivate var webViewController: WebViewController {
+		// swiftlint:disable:next force_cast
 		return self.window?.contentViewController as! WebViewController
     }
 
     fileprivate var panel: HeliumPanel! {
-		return (self.window as! HeliumPanel)
+		// swiftlint:disable:next force_cast
+		return self.window as! HeliumPanel
     }
-    
+
     // MARK: Window lifecycle
     override func windowDidLoad() {
         panel.isFloatingPanel = true
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(HeliumPanelController.didBecomeActive), name: NSNotification.Name.NSApplicationDidBecomeActive, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(HeliumPanelController.willResignActive), name: NSNotification.Name.NSApplicationWillResignActive, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(HeliumPanelController.didUpdateTitle(_:)), name: Notification.Name(rawValue: "HeliumUpdateTitle"), object: nil)
-        
+
+        NotificationCenter.default.addObserver(
+			self,
+			selector: #selector(HeliumPanelController.didBecomeActive),
+			name: NSNotification.Name.NSApplicationDidBecomeActive,
+			object: nil)
+        NotificationCenter.default.addObserver(
+			self,
+			selector: #selector(HeliumPanelController.willResignActive),
+			name: NSNotification.Name.NSApplicationWillResignActive,
+			object: nil)
+        NotificationCenter.default.addObserver(
+			self,
+			selector: #selector(HeliumPanelController.didUpdateTitle(_:)),
+			name: Notification.Name(rawValue: "HeliumUpdateTitle"),
+			object: nil)
+
         setFloatOverFullScreenApps()
 
 		// MARK: Load settings from UserSettings
@@ -60,12 +74,12 @@ class HeliumPanelController : NSWindowController {
         mouseOver = true
         updateTranslucency()
     }
-    
+
     override func mouseExited(with theEvent: NSEvent) {
         mouseOver = false
         updateTranslucency()
     }
-    
+
     // MARK : Translucency
 	fileprivate var mouseOver: Bool = false
 
@@ -101,8 +115,7 @@ class HeliumPanelController : NSWindowController {
 			if currentlyTranslucent {
 				panel.animator().alphaValue = alpha
 				panel.isOpaque = false
-			}
-			else {
+			} else {
 				panel.isOpaque = true
 				panel.animator().alphaValue = 1
 			}
@@ -126,8 +139,7 @@ class HeliumPanelController : NSWindowController {
             return !mouseOver
         }
     }
-    
-    
+
     fileprivate func setFloatOverFullScreenApps() {
         if UserSettings.disabledFullScreenFloat.value {
             panel.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
@@ -136,9 +148,9 @@ class HeliumPanelController : NSWindowController {
             panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         }
     }
-    
+
     // MARK: IBActions
-    
+
     fileprivate func disabledAllMouseOverPreferences(_ allMenus: [NSMenuItem]) {
         // GROSS HARD CODED
         for x in allMenus.dropFirst(2) {
@@ -157,21 +169,21 @@ class HeliumPanelController : NSWindowController {
         translucencyPreference = .always
         sender.state = NSOnState
     }
-    
+
     @IBAction fileprivate func overPreferencePress(_ sender: NSMenuItem) {
         disabledAllMouseOverPreferences(sender.menu!.items)
         translucencyPreference = .mouseOver
         sender.state = NSOnState
     }
-    
+
     @IBAction fileprivate func outsidePreferencePress(_ sender: NSMenuItem) {
         disabledAllMouseOverPreferences(sender.menu!.items)
         translucencyPreference = .mouseOutside
         sender.state = NSOnState
     }
-    
+
     @IBAction fileprivate func percentagePress(_ sender: NSMenuItem) {
-        for button in sender.menu!.items{
+        for button in sender.menu!.items {
             (button).state = NSOffState
         }
         sender.state = NSOnState
@@ -181,13 +193,13 @@ class HeliumPanelController : NSWindowController {
              UserSettings.opacityPercentage.value = alpha
         }
     }
-    
+
     @IBAction fileprivate func openLocationPress(_ sender: AnyObject) {
-		didRequestUserUrl(
-			currentURL: self.webViewController.currentURL,
-			messageText: "Enter Destination URL",
-			acceptTitle: "Load",
-			cancelTitle: "Cancel",
+		didRequestUserUrl(RequestUserUrlStrings(
+				currentURL: self.webViewController.currentURL,
+				messageText: "Enter Destination URL",
+				acceptBtnText: "Load",
+				cancelBtnText: "Cancel"),
 			acceptHandler: { (newUrl: String) in
 				self.webViewController.loadURL(text: newUrl)
 			}
@@ -197,11 +209,11 @@ class HeliumPanelController : NSWindowController {
     @IBAction fileprivate func openFilePress(_ sender: AnyObject) {
         didRequestFile()
     }
-    
+
     @IBAction fileprivate func floatOverFullScreenAppsToggled(_ sender: NSMenuItem) {
         sender.state = (sender.state == NSOnState) ? NSOffState : NSOnState
         UserSettings.disabledFullScreenFloat.value = (sender.state == NSOffState)
-        
+
         setFloatOverFullScreenApps()
     }
 
@@ -213,16 +225,16 @@ class HeliumPanelController : NSWindowController {
             sender.state = NSOnState
             // somehow removing .titled also removes .utitlityWindow, which is required
             panel.styleMask.update(with: [ .titled, .utilityWindow ])
-            panel.title = self.webViewController.webView.title ?? "";
+            panel.title = self.webViewController.webView.title ?? ""
         }
     }
 
-    @IBAction func setHomePage(_ sender: AnyObject){
-		didRequestUserUrl(
-			currentURL: UserSettings.homePageURL.value,
-			messageText: "Enter new Home Page URL",
-			acceptTitle: "Set",
-			cancelTitle: "Cancel",
+    @IBAction func setHomePage(_ sender: AnyObject) {
+		didRequestUserUrl(RequestUserUrlStrings(
+				currentURL: UserSettings.homePageURL.value,
+				messageText: "Enter new Home Page URL",
+				acceptBtnText: "Set",
+				cancelBtnText: "Cancel"),
 			acceptHandler: { (newUrlConstant: String) in
 				var newUrl = newUrlConstant
 
@@ -235,20 +247,20 @@ class HeliumPanelController : NSWindowController {
 				self.webViewController.loadURL(text: newUrl)
 		})
     }
-    
-    //MARK: Actual functionality
+
+    // MARK: Actual functionality
     @objc fileprivate func didUpdateTitle(_ notification: Notification) {
         if let title = notification.object as? String {
             panel.title = title
         }
     }
-    
+
     fileprivate func didRequestFile() {
         let open = NSOpenPanel()
         open.allowsMultipleSelection = false
         open.canChooseFiles = true
         open.canChooseDirectories = false
-        
+
         if open.runModal() == NSModalResponseOK {
             if let url = open.url {
 				webViewController.loadURL(url: url)
@@ -256,26 +268,34 @@ class HeliumPanelController : NSWindowController {
         }
     }
 
+	struct RequestUserUrlStrings {
+		let currentURL: String?
+		let messageText: String
+		let acceptBtnText: String
+		let cancelBtnText: String
+	}
+
 	/// Shows alert asking user to input URL
 	/// And validate it
-	fileprivate func didRequestUserUrl(currentURL: String?, messageText: String, acceptTitle: String, cancelTitle: String, acceptHandler: @escaping (String) -> Void) {
+	fileprivate func didRequestUserUrl(_ strings: RequestUserUrlStrings, acceptHandler: @escaping (String) -> Void) {
 		// Create alert
 		let alert = NSAlert()
 		alert.alertStyle = NSAlertStyle.informational
-		alert.messageText = messageText
+		alert.messageText = strings.messageText
 
 		// Create urlField
-		let urlField = URLField(withValue: currentURL)
+		let urlField = URLField(withValue: strings.currentURL)
 		urlField.frame = NSRect(x: 0, y: 0, width: 300, height: 20)
 
 		// Add urlField and buttons to alert
 		alert.accessoryView = urlField
-		alert.addButton(withTitle: acceptTitle)
-		alert.addButton(withTitle: cancelTitle)
+		alert.addButton(withTitle: strings.acceptBtnText)
+		alert.addButton(withTitle: strings.cancelBtnText)
 
 		alert.beginSheetModal(for: self.window!, completionHandler: { response in
 			// first button is accept
 			if response == NSAlertFirstButtonReturn {
+				// swiftlint:disable:next force_cast
 				var newUrl = (alert.accessoryView as! NSTextField).stringValue
 				newUrl = UrlHelpers.ensureScheme(newUrl)
 				if UrlHelpers.isValid(urlString: newUrl) {
@@ -291,7 +311,7 @@ class HeliumPanelController : NSWindowController {
     @objc fileprivate func didBecomeActive() {
         panel.ignoresMouseEvents = false
     }
-    
+
     @objc fileprivate func willResignActive() {
         if currentlyTranslucent {
             panel.ignoresMouseEvents = true

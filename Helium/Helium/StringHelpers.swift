@@ -12,12 +12,11 @@ extension String {
     func replacePrefix(_ prefix: String, replacement: String) -> String {
         if hasPrefix(prefix) {
             return replacement + substring(from: prefix.endIndex)
-        }
-        else {
+        } else {
             return self
         }
     }
-    
+
     func indexOf(_ target: String) -> Int {
         let range = self.range(of: target)
         if let range = range {

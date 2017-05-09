@@ -5,6 +5,7 @@
 //  Created by Jaden Geller on 4/9/15.
 //  Copyright (c) 2015 Jaden Geller. All rights reserved.
 //
+// swiftlint:disable line_length
 
 import Cocoa
 import XCTest
@@ -13,10 +14,11 @@ class MagicTests: XCTestCase {
 	static func t(_ stringURL: String) -> String? {
 		if let afterUrl = UrlHelpers.doMagic(stringURL: stringURL) {
 			return afterUrl.absoluteString
+		} else {
+			return nil
 		}
-		else { return nil }
 	}
-    
+
     func testYoutube() {
 		XCTAssertEqual(MagicTests.t("https://youtu.be"), nil)
 		XCTAssertEqual(MagicTests.t("https://youtu.be/5z887j6gBr4"), "https://youtube.com/embed/5z887j6gBr4")

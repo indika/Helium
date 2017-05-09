@@ -26,7 +26,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         magicURLMenu.state = UserSettings.disabledMagicURLs.value ? NSOffState : NSOnState
-        
+
         fullScreenFloatMenu.state = UserSettings.disabledFullScreenFloat.value ? NSOffState : NSOnState
 
 		let alpha = UserSettings.opacityPercentage.value
@@ -39,15 +39,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
-    
-    
+
     @IBAction func magicURLRedirectToggled(_ sender: NSMenuItem) {
         sender.state = (sender.state == NSOnState) ? NSOffState : NSOnState
         UserSettings.disabledMagicURLs.value = (sender.state == NSOffState)
     }
-    
-    
-    //MARK: - handleURLEvent
+
+    // MARK: - handleURLEvent
     // Called when the App opened via URL.
     @objc func handleURLEvent(_ event: NSAppleEventDescriptor, withReply reply: NSAppleEventDescriptor) {
 
@@ -67,4 +65,3 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "HeliumLoadURL"), object: urlObject)
     }
 }
-

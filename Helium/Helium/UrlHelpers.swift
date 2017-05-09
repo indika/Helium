@@ -20,6 +20,7 @@ struct UrlHelpers {
 
 	// https://mathiasbynens.be/demo/url-regex
 	static func isValid(urlString: String) -> Bool {
+		// swiftlint:disable:next force_try
 		let regex = try! NSRegularExpression(pattern: "^(https?://)[^\\s/$.?#].[^\\s]*$")
 		return (regex.firstMatch(in: urlString, range: urlString.nsrange) != nil)
 	}
@@ -35,17 +36,16 @@ extension UrlHelpers {
 		let stringURL = UrlHelpers.ensureScheme(stringURL)
 		if let url = URL(string: stringURL) {
 			return UrlHelpers.doMagic(url)
+		} else {
+			return nil
 		}
-		else { return nil }
 	}
 
 	class Magic {
 		fileprivate var modified: URLComponents
 		fileprivate var converted: Bool = false
 		public var newUrl: URL? {
-			get {
-				return self.converted ? self.modified.url : nil
-			}
+			return self.converted ? self.modified.url : nil
 		}
 
 		fileprivate let url: URL
@@ -60,11 +60,11 @@ extension UrlHelpers {
 
 			// Paranoind check
 			if url.host != nil {
-				self.converted = self.YouTube() ||
-					self.Twitch() ||
-					self.Vimeo() ||
-					self.Youku() ||
-					self.DailyMotion()
+				self.converted = self.hYouTube() ||
+					self.hTwitch() ||
+					self.hVimeo() ||
+					self.hYouku() ||
+					self.hDailyMotion()
 			}
 		}
 	}
@@ -72,7 +72,7 @@ extension UrlHelpers {
 
 // MARK: Generic Handler Factory - just replaces prefix
 extension UrlHelpers.Magic {
-	fileprivate static func GenericFactory(prefix: String, replacement: String) -> ((UrlHelpers.Magic) -> Bool) {
+	fileprivate static func genericHandlerFactory(prefix: String, replacement: String) -> ((UrlHelpers.Magic) -> Bool) {
 		return { (instance: UrlHelpers.Magic) in
 			if instance.urlString.hasPrefix(prefix) {
 				let urlStringModified = instance.urlString.replacePrefix(prefix, replacement: replacement)
@@ -88,34 +88,41 @@ extension UrlHelpers.Magic {
 
 // MARK: Youku Handler
 extension UrlHelpers.Magic {
-	private static let YoukuClosure = UrlHelpers.Magic.GenericFactory(prefix: "http://v.youku.com/v_show/id_", replacement: "http://player.youku.com/embed/")
+	private static let YoukuClosure = UrlHelpers.Magic.genericHandlerFactory(
+		prefix: "http://v.youku.com/v_show/id_",
+		replacement: "http://player.youku.com/embed/")
 
-	fileprivate func Youku() -> Bool {
+	fileprivate func hYouku() -> Bool {
 		return UrlHelpers.Magic.YoukuClosure(self)
 	}
 }
 
 // MARK: DailyMotion Handler
 extension UrlHelpers.Magic {
-	private static let Short = UrlHelpers.Magic.GenericFactory(prefix: "http://www.dailymotion.com/video/", replacement: "http://www.dailymotion.com/embed/video/")
+	private static let DailyMotionShort = UrlHelpers.Magic.genericHandlerFactory(
+		prefix: "http://www.dailymotion.com/video/",
+		replacement: "http://www.dailymotion.com/embed/video/")
 
-	private static let Full = UrlHelpers.Magic.GenericFactory(prefix: "http://dai.ly/video/", replacement: "http://www.dailymotion.com/embed/video/")
+	private static let DailyMotionLong = UrlHelpers.Magic.genericHandlerFactory(
+		prefix: "http://dai.ly/video/",
+		replacement: "http://www.dailymotion.com/embed/video/")
 
-	fileprivate func DailyMotion() -> Bool {
-		return UrlHelpers.Magic.Full(self) || UrlHelpers.Magic.Short(self)
+	fileprivate func hDailyMotion() -> Bool {
+		return UrlHelpers.Magic.DailyMotionLong(self) ||
+			UrlHelpers.Magic.DailyMotionShort(self)
 	}
 }
 
 // MARK: Twitch.tv Handler
 extension UrlHelpers.Magic {
-	fileprivate func Twitch() -> Bool {
+	fileprivate func hTwitch() -> Bool {
+		// swiftlint:disable:next force_try
 		let TwitchRegExp = try! NSRegularExpression(pattern: "https?://(?:www\\.)?twitch\\.tv/([\\w\\d\\_]+)(?:/(\\d+))?")
 
 		if let match = TwitchRegExp.firstMatch(in: urlString, range: urlString.nsrange),
-			let channel = urlString.substring(with:match.rangeAt(1))
-		{
+			let channel = urlString.substring(with:match.rangeAt(1)) {
 			var magicd = false
-			switch(channel) {
+			switch channel {
 			case "directory", "products", "p", "user":
 				break
 			case "videos":
@@ -143,9 +150,13 @@ extension UrlHelpers.Magic {
 
 // MARK: Vimeo Handler
 extension UrlHelpers.Magic {
-	fileprivate func Vimeo() -> Bool {
+	fileprivate func hVimeo() -> Bool {
 		// Enforce https
-		let urlStringModified = self.urlString.replacingOccurrences(of: "(?:https?://)?(?:www\\.)?vimeo\\.com/(\\d+)", with: "https://player.vimeo.com/video/$1", options: .regularExpression)
+		let urlStringModified = self.urlString.replacingOccurrences(
+			of: "(?:https?://)?(?:www\\.)?vimeo\\.com/(\\d+)",
+			with: "https://player.vimeo.com/video/$1",
+			options: .regularExpression)
+
 		if urlStringModified != self.urlString, let newComponents = URLComponents(string: urlStringModified) {
 			self.modified = newComponents
 
@@ -158,8 +169,9 @@ extension UrlHelpers.Magic {
 
 // MARK: YouTube Handler
 extension UrlHelpers.Magic {
-	fileprivate func YouTube() -> Bool {
+	fileprivate func hYouTube() -> Bool {
 		// (video id) (hours)?(minutes)?(seconds)
+		// swiftlint:disable:next force_try line_length
 		let YTRegExp = try! NSRegularExpression(pattern: "(?:https?://)?(?:www\\.)?(?:youtube\\.com/watch\\?v=|youtu.be/)([\\w\\_\\-]+)(?:[&?]t=(?:(\\d+)h)?(?:(\\d+)m)?(?:(\\d+)s?))?")
 
 		if let match = YTRegExp.firstMatch(in: self.urlString, range: self.urlString.nsrange) {

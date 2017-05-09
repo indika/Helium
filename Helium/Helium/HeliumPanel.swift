@@ -16,7 +16,7 @@ extension NSPoint {
 	}
 }
 
-class HeliumPanel : NSPanel {
+class HeliumPanel: NSPanel {
 	override var canBecomeKey: Bool {
 		return true
 	}
@@ -25,9 +25,8 @@ class HeliumPanel : NSPanel {
 		return true
 	}
 
-
 	// nil when not dragging
-	var previousMouseLocation: NSPoint? = nil
+	var previousMouseLocation: NSPoint?
 
 	override func sendEvent(_ event: NSEvent) {
 		switch event.type {

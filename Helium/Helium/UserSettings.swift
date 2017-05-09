@@ -50,5 +50,6 @@ internal struct UserSettings {
 	// See values in HeliumPanelController.TranslucencyPreference
 	static let translucencyPreference = Setting<Int>("rawTranslucencyPreference", defaultValue: 0)
 
-	static let homePageURL = Setting<String>("homePageURL", defaultValue: "https://cdn.rawgit.com/JadenGeller/Helium/master/helium_start.html")
+	static let homePageURL = Setting<String>("homePageURL",
+		defaultValue: "https://cdn.rawgit.com/JadenGeller/Helium/master/helium_start.html")
 }
