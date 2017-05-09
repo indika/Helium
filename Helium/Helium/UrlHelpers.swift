@@ -17,6 +17,12 @@ struct UrlHelpers {
 			return urlString
 		}
 	}
+
+	// https://mathiasbynens.be/demo/url-regex
+	static func isValid(urlString: String) -> Bool {
+		let regex = try! NSRegularExpression(pattern: "^(https?://)[^\\s/$.?#].[^\\s]*$")
+		return (regex.firstMatch(in: urlString, range: urlString.nsrange) != nil)
+	}
 }
 
 // MARK: - Magic Handlers

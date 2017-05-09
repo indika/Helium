@@ -262,13 +262,6 @@ class HeliumPanelController : NSWindowController {
         }
     }
 
-	func validateURL (_ stringURL : String) -> Bool {
-		let urlRegEx = "(https?://)?((\\w|-)+)(([.]|[/])((\\w|-)+))+"
-		let predicate = NSPredicate(format:"SELF MATCHES %@", argumentArray:[urlRegEx])
-
-		return predicate.evaluate(with: stringURL)
-	}
-
 	/// Shows alert asking user to input URL
 	/// And validate it
 	fileprivate func didRequestUserUrl(currentURL: String?, messageText: String, acceptTitle: String, cancelTitle: String, acceptHandler: @escaping (String) -> Void) {
@@ -289,8 +282,9 @@ class HeliumPanelController : NSWindowController {
 		alert.beginSheetModal(for: self.window!, completionHandler: { response in
 			// first button is accept
 			if response == NSAlertFirstButtonReturn {
-				let newUrl = (alert.accessoryView as! NSTextField).stringValue
-				if self.validateURL(newUrl) {
+				var newUrl = (alert.accessoryView as! NSTextField).stringValue
+				newUrl = UrlHelpers.ensureScheme(newUrl)
+				if UrlHelpers.isValid(urlString: newUrl) {
 					acceptHandler(newUrl)
 				}
 			}
