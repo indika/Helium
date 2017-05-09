@@ -8,8 +8,6 @@
 
 import AppKit
 
-let optionKeyCode: UInt16 = 58
-
 fileprivate class URLField: NSTextField {
 	override func mouseDown(with event: NSEvent) {
 		super.mouseDown(with: event)
@@ -18,10 +16,12 @@ fileprivate class URLField: NSTextField {
 		}
 	}
 
-	convenience init(string: String?) {
+	convenience init(withValue: String?) {
 		self.init()
 
-		if let string = string { self.stringValue = string }
+		if let string = withValue {
+			self.stringValue = string
+		}
 		self.lineBreakMode = NSLineBreakMode.byTruncatingHead
 		self.usesSingleLineMode = true
 	}
@@ -265,7 +265,7 @@ class HeliumPanelController : NSWindowController {
 		alert.messageText = messageText
 
 		// Create urlField
-		let urlField = URLField(string: currentURL)
+		let urlField = URLField(withValue: currentURL)
 		urlField.frame = NSRect(x: 0, y: 0, width: 300, height: 20)
 
 		// Add urlField and buttons to alert
