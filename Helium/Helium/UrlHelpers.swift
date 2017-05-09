@@ -21,6 +21,18 @@ struct UrlHelpers {
 
 // MARK: - Magic Handlers
 extension UrlHelpers {
+	static func doMagic(_ url: URL) -> URL? {
+		return UrlHelpers.Magic(url).newUrl
+	}
+
+	static func doMagic(stringURL: String) -> URL? {
+		let stringURL = UrlHelpers.ensureScheme(stringURL)
+		if let url = URL(string: stringURL) {
+			return UrlHelpers.doMagic(url)
+		}
+		else { return nil }
+	}
+
 	class Magic {
 		fileprivate var modified: URLComponents
 		fileprivate var converted: Bool = false
@@ -96,20 +108,27 @@ extension UrlHelpers.Magic {
 		if let match = TwitchRegExp.firstMatch(in: urlString, range: urlString.nsrange),
 			let channel = urlString.substring(with:match.rangeAt(1))
 		{
+			var magicd = false
 			switch(channel) {
 			case "directory", "products", "p", "user":
 				break
 			case "videos":
 				if let idString = urlString.substring(with:match.rangeAt(2)) {
-					modified.host = "player.twitch.tv"
 					modified.query = "html5&video=v" + idString
-					return true
+					magicd = true
 				}
 			default:
-				modified.host = "player.twitch.tv"
 				modified.query = "html5&channel=" + channel
-				return true
+				magicd = true
 			}
+
+			if magicd {
+				// Enforce https
+				modified.scheme = "https"
+				modified.host = "player.twitch.tv"
+			}
+
+			return magicd
 		}
 
 		return false
@@ -119,6 +138,7 @@ extension UrlHelpers.Magic {
 // MARK: Vimeo Handler
 extension UrlHelpers.Magic {
 	fileprivate func Vimeo() -> Bool {
+		// Enforce https
 		let urlStringModified = self.urlString.replacingOccurrences(of: "(?:https?://)?(?:www\\.)?vimeo\\.com/(\\d+)", with: "https://player.vimeo.com/video/$1", options: .regularExpression)
 		if urlStringModified != self.urlString, let newComponents = URLComponents(string: urlStringModified) {
 			self.modified = newComponents
@@ -137,6 +157,8 @@ extension UrlHelpers.Magic {
 		let YTRegExp = try! NSRegularExpression(pattern: "(?:https?://)?(?:www\\.)?(?:youtube\\.com/watch\\?v=|youtu.be/)([\\w\\_\\-]+)(?:[&?]t=(?:(\\d+)h)?(?:(\\d+)m)?(?:(\\d+)s?))?")
 
 		if let match = YTRegExp.firstMatch(in: self.urlString, range: self.urlString.nsrange) {
+			// Enforce https
+			self.modified.scheme = "https"
 			self.modified.host = "youtube.com"
 			self.modified.path = "/embed/" + self.urlString.substring(with: match.rangeAt(1))!
 

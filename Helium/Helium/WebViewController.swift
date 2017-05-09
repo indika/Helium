@@ -153,8 +153,7 @@ class WebViewController: NSViewController, WKNavigationDelegate {
 			return
 		}
 
-		let magicUrl = UrlHelpers.Magic(url)
-		if let newUrl = magicUrl.newUrl {
+		if let newUrl = UrlHelpers.doMagic(url) {
 			decisionHandler(WKNavigationActionPolicy.cancel)
 			loadURL(url: newUrl)
 		} else {
