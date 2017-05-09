@@ -30,18 +30,12 @@ fileprivate class URLField: NSTextField {
 class HeliumPanelController : NSWindowController {
 
     fileprivate var webViewController: WebViewController {
-        get {
-            return self.window?.contentViewController as! WebViewController
-        }
+		return self.window?.contentViewController as! WebViewController
     }
-    
-    
-    fileprivate var panel: NSPanel! {
-        get {
-            return (self.window as! NSPanel)
-        }
+
+    fileprivate var panel: HeliumPanel! {
+		return (self.window as! HeliumPanel)
     }
-    
     
     // MARK: Window lifecycle
     override func windowDidLoad() {
