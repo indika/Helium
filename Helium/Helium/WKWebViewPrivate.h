@@ -10,8 +10,8 @@
 
 @interface WKWebView (Privates)
 
-@property (copy, setter=_setCustomUserAgent:) NSString *_customUserAgent;
+  @property (copy, setter=_setCustomUserAgent:) NSString *_customUserAgent;
 
-@property (nonatomic, readonly) NSString *_userAgent;
-
+  @property (nonatomic, readonly) NSString *_userAgent;
+  
 @end
