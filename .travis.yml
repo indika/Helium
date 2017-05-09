@@ -1,0 +1,7 @@
+language: objective-c
+osx_image: xcode8.3
+xcode_project: Helium/Helium.xcodeproj
+xcode_scheme: Helium
+script: 
+  - set -o pipefail
+  - xcodebuild -project $TRAVIS_XCODE_PROJECT -scheme $TRAVIS_XCODE_SCHEME -configuration Release build test | xcpretty
