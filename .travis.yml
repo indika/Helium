@@ -2,6 +2,21 @@ language: objective-c
 osx_image: xcode8.3
 xcode_project: Helium/Helium.xcodeproj
 xcode_scheme: Helium
-script: 
-  - set -o pipefail
-  - xcodebuild -project $TRAVIS_XCODE_PROJECT -scheme $TRAVIS_XCODE_SCHEME -configuration Release build test | xcpretty
+script:
+- set -o pipefail
+- xcodebuild -project $TRAVIS_XCODE_PROJECT -scheme $TRAVIS_XCODE_SCHEME -configuration
+  Release build test | xcpretty
+
+before_deploy:
+  - OUTPUTDIR="$PWD/Helium/build/Release"
+  - cd $OUTPUTDIR
+  - ditto -c -k --sequesterRsrc --keepParent "Helium.app" "Helium-$TRAVIS_TAG.zip"
+deploy:
+  provider: releases
+  api_key:
+    secure: AhCUhASzVApSHhl2TLPggIDGEgdRpdU1YVlrnYCn9CZT2ZrfAommRU4WFOWldCEpoW+AJnXfGHIVUH7Mxp7D8VWT8Y03glezH5SjUMjFi7JYmuih6nLdVgEwXAKa3aSFE/pnJE1E6uOrW+WXcmCukfJg1KWoCbw+0bUVSswkLgLwVGZNC71/Dv2DEvBfCCL9d2t/nddMndaBu1PbWIWZ8h7FnImgcRg7RE/UntivcRI3zKPEfSzO17wObS+BgjWkFHjk/4HxBNdBeP8z3zGge8gj8rmvl6MG1Nl2kqRc3sN3kbAnarhCaHT+j7ilMAUds36wDI1xCWeXbhbkr4qjMg09XH3RKTs1OJGGhEdTfQkL+4ilVbCGlJHPk2/XEi8Dh997unmbdFHfJoXXEFExS027TJAD6PbR4QpanDKnw084mwbv71oO5LlkYAXeoiVWXr+vj1PxfYUaNoDcGgnmw3/Y91TXQGgbeICi0y8/h/pxoIUzPJp2oWFvaXG+6LiKSaaDXwhjs6jWI63vKixvTRvincVXQxAsx9igTcm7tZ4E4XBSk2p4oUt3oTBC+o9TwvTD1Wodh075P3kPcE6RGp4WaU7/ELoLblYE1B6obyOTe0TnGHpDQpATDupAby383RGQJwLDyesil7xelNydb9MBU2SyAz8ZUuvzzzYqpG0=
+  file: $OUTPUTDIR/Helium-$TRAVIS_TAG.zip
+  skip_cleanup: true
+  on:
+    repo: stek29/Helium
+    tags: true
