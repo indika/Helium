@@ -20,7 +20,7 @@ class WebViewController: NSViewController, WKNavigationDelegate {
     NotificationCenter.default.addObserver(
       self,
       selector: #selector(WebViewController.loadURL(urlObject:)),
-      name: NSNotification.Name(rawValue: "HeliumLoadURL"),
+      name: NSNotification.Name(rawValue: "HeliumLoadURLString"),
       object: nil)
 
     // Layout webview
@@ -127,8 +127,8 @@ class WebViewController: NSViewController, WKNavigationDelegate {
   }
 
   func loadURL(urlObject: Notification) {
-    if let url = urlObject.object as? URL {
-      loadURL(text: url.absoluteString)
+    if let string = urlObject.object as? String {
+      loadURL(text: string)
     }
   }
 

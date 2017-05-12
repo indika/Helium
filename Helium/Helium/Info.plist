@@ -54,5 +54,28 @@
 	<string>https://rawgit.com/stek29/Helium/master/HeliumUpdatesSparkleFeed.xml</string>
 	<key>SUPublicDSAKeyFile</key>
 	<string>dsa_pub.pem</string>
+	<key>NSServices</key>
+	<array>
+		<dict>
+			<key>NSPortName</key>
+			<string>Helium</string>
+			<key>NSRequiredContext</key>
+			<dict>
+				<key>NSTextContent</key>
+				<string>URL</string>
+			</dict>
+			<key>NSSendTypes</key>
+			<array>
+				<string>public.utf8-plain-text</string>
+			</array>
+			<key>NSMessage</key>
+			<string>handleURLPboard</string>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Open in Helium</string>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>

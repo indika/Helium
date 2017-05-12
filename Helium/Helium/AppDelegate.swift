@@ -25,6 +25,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
   }
 
   func applicationDidFinishLaunching(_ aNotification: Notification) {
+    NSApp.servicesProvider = self
+
     magicURLMenu.state = UserSettings.disabledMagicURLs.value ? NSOffState : NSOnState
 
     fullScreenFloatMenu.state = UserSettings.disabledFullScreenFloat.value ? NSOffState : NSOnState
@@ -58,10 +60,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     let index = urlString.index(urlString.startIndex, offsetBy: 9)
     let url = urlString.substring(from: index)
 
-    guard let urlObject = URL(string: url) else {
-      return print("No valid URL to handle")
-    }
+    NotificationCenter.default.post(name: Notification.Name(rawValue: "HeliumLoadURLString"), object: url)
+  }
 
-    NotificationCenter.default.post(name: Notification.Name(rawValue: "HeliumLoadURL"), object: urlObject)
+  @objc func handleURLPboard(_ pboard: NSPasteboard, userData: NSString, error: NSErrorPointer) {
+    if let selection = pboard.string(forType: NSPasteboardTypeString) {
+      // Notice: string will contain whole selection, not just the urls
+      // So this may (and will) fail. It should instead find url in whole
+      // Text somehow
+       NotificationCenter.default.post(name: Notification.Name(rawValue: "HeliumLoadURLString"), object: selection)
+    }
   }
 }
