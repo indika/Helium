@@ -54,4 +54,10 @@ internal struct UserSettings {
     "homePageURL",
     defaultValue: "https://cdn.rawgit.com/JadenGeller/Helium/master/helium_start.html"
   )
+
+  static let userAgent = Setting<String>(
+    "userAgent",
+    defaultValue: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.1 Safari/603.1.30"
+    // swiftlint:disable:previous line_length
+  )
 }

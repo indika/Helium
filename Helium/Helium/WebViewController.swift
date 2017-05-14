@@ -31,9 +31,8 @@ class WebViewController: NSViewController, WKNavigationDelegate {
     // Allow plug-ins such as silverlight
     webView.configuration.preferences.plugInsEnabled = true
 
-    // Custom user agent string for Netflix HTML5 support
-    // swiftlint:disable:next line_length
-    webView._customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/601.6.17 (KHTML, like Gecko) Version/9.1.1 Safari/601.6.17"
+    // Custom user agent string to mimic Safari -- some sites rely on this
+    webView._customUserAgent = UserSettings.userAgent.value
 
     // Setup magic URLs
     webView.navigationDelegate = self
