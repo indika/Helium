@@ -3,20 +3,25 @@ osx_image: xcode8.3
 xcode_project: Helium/Helium.xcodeproj
 xcode_scheme: Helium
 script:
-- set -o pipefail
-- xcodebuild -project $TRAVIS_XCODE_PROJECT -scheme $TRAVIS_XCODE_SCHEME -configuration
-  Release build test | xcpretty
-
+- ".travis/build.sh"
+env:
+  global:
+  - 'IDENTITY="Mac Developer: apple@stek29.rocks (BEQ6EGG689)"'
+  - secure: pVIYsicdQQM9P5nWUhiLyzipXFNpTi4q1fa67fl54YO7NI7Q3QuxkNphfm8c91J1BJgzjegvv8LP3V3MemS7nPxmsohWh2Q8rUcyKM3GloXzwdMEDtZGP/pBM5Fx9wa8khUzk5bRPziCaNRo8baVaZJB76EAxmbfVIbaEhWV9Fyrzasc6V1xu2jLC/D7tfSkfzXj9O9CsuifAqRtza3EyndURi9clUriE1pjQCtFH4bNp44G6Ha+UJ4OqbNqaJgCVs4Uki9SRHZ20lqy+qDpiN6XDAkDTJvycwM/rIjvypW88uV9RvQzh9dFKe3KlH1lOwLPePZ1Dcm7Y8hv/f9JdqQJIRrGbw4KBrw+2gaA1o/D1cnq3lM1+T1PAB0k3Yf4fV5Fi+Pf1GilnielWPyN7fa1awytYcX243/Xc7KDlzxt0VuzVtlMnG6BlxGJ1R8775TJZLNZcZ9gYz16iICBdbP8CnFQedYUfdGhrKiFOHaIqiy2FBD3D1GnXlQ2lN0Tg+LA2tiPwzMg+t/7NZl3qwZmQV0yWH8QBO1M93dIf2E/sRQoZOriBkwDHc1s83+Vo9MFpsEuHf0E4ozFhLJgh0vWsjwwCRa048JBmxLUynvdxCwns2ZjgHQ/nY81DEkihYzMU3M4XQB0W8HO0szd7y8c7ip7INo/Xlge/oZIpS4=
+  - secure: QkOL9j+k4T5W+xGvzKY1YKPVXXdEtOKXSQeSP57zo5+iKlJwU8JlVRttj6XCD5Vr2CPDSmtYMh4yqGgXnkv9UAJ4wI5z+RM+Js63T7+Egq+TkvJ9cNyl4xenQ2oBPzseOUtqjEeatSwJDxX6+EtpqDo58AkgpgoVorajge3Dt7iI4c4iAUPEm1SMt1SFQCSW2uDPhnTldhgexYcq/3r2LEH30ttCOZJOjvhIm2+s5ER3df/USSRgVUKFJ1mFF7Ewi5XA3mhLzr+ArbMfh4nbab32NKidOswe60igiuwTYAt0A4TiAngUMENQUQtoL+Gge1Yy5L/eaakxSl3d4ozuwW+6ALtjkZ1vuxjzvBgZbFxCNyHRFFGlB95zL12Jsz9qpK2JJ7nMbBAR61pyL/4DMpMJeq9TP1TwVhyJTAWZ7P7JTS3uFKoeki8fII9Loxj8vJ3sB4GrrVB5mbutn1hzhqWYPsxfTi7YrJ5qnZSfjeh1P6K8g7X5uw8rFVzgeoOlp4THpOzmpwHnSMSlWihoETnyXltsSfsldMHwqqzipN8ikomaAszRpFM0OlXmZQmPy7wVfoZdQ+ujNhVjv0SRZ1FFVlEltlQtsSW3v8gC8Pwg2bKBcIwoUPEyC8AmRpd5xUcetT0q9rcstigUMEsOAnRocVtMMrCOM52EBYfgZDY=
+  - secure: Z9je59odeyOmnWMDXFKTWzB2zJoFsU6Bf56rWTRJ/tUdQeCHTrPZK9JQA+rYOqbHkzgB8iZ8elM3rwhn6zaZpLMj00KALO37Nwodl9T5NFxTzDOd7gzJmEtY8DvtInKPK+y55EXl8vaJNAWDyT+nRzItiRDu/dRxTIGC04LgP/3vTCAsF5DYpceQdNRsf0iKbocElJWbPlUen6CMw5rUOtGUW8HJLIx6fw3gWeRKKw4GXi14uWtWQG7Ivyj4E5A0kbHVisQigQNyHdQUFQ2IhpLGWx0slnTv5+cRw+a9Nzkq+AzPR7qHqdo/wQ+8JhYdPW9T2OnZparn0rufhHQG/Txt6EA7n8NJkz+Np9V3AuQFejj4qYChlDvf6QnQzPM2sEmFI621I+oA+DSi/18BCBKXpsj1V7BiewAVHvKz0JY+wD4B2aVlVikTyWaJkirDRGOjtCZzrqCphG0Lu1PtmqY+hEKdFqLxJyWc/TrL+yLv1HIKmsUtlcd1Hl2nLzBJEnni3qGviny0qMd5MWqFr9loCh+Vx5PEl2XZNQl0wu/7PQqCqccT12eqZqayjkOSxgSO67wetiONkSue3j6tZMlx6LF8R7nSCq9zIgAiElnpH30xflUkD0PW3hMrmiNxIwmU3OvvbmMRG7O1isDKuIrJC7JDMu/NgazcfM96+7E=
 before_deploy:
-  - OUTPUTDIR="$PWD/Helium/build/Release"
-  - cd $OUTPUTDIR
-  - ditto -c -k --sequesterRsrc --keepParent "Helium.app" "Helium-$TRAVIS_TAG.zip"
+- OUTPUTDIR="$PWD/Helium/build/Release"
+- cd $OUTPUTDIR
+- ditto -c -k --sequesterRsrc --keepParent "Helium.app" "Helium-$TRAVIS_TAG.zip"
 deploy:
   provider: releases
   api_key:
     secure: AhCUhASzVApSHhl2TLPggIDGEgdRpdU1YVlrnYCn9CZT2ZrfAommRU4WFOWldCEpoW+AJnXfGHIVUH7Mxp7D8VWT8Y03glezH5SjUMjFi7JYmuih6nLdVgEwXAKa3aSFE/pnJE1E6uOrW+WXcmCukfJg1KWoCbw+0bUVSswkLgLwVGZNC71/Dv2DEvBfCCL9d2t/nddMndaBu1PbWIWZ8h7FnImgcRg7RE/UntivcRI3zKPEfSzO17wObS+BgjWkFHjk/4HxBNdBeP8z3zGge8gj8rmvl6MG1Nl2kqRc3sN3kbAnarhCaHT+j7ilMAUds36wDI1xCWeXbhbkr4qjMg09XH3RKTs1OJGGhEdTfQkL+4ilVbCGlJHPk2/XEi8Dh997unmbdFHfJoXXEFExS027TJAD6PbR4QpanDKnw084mwbv71oO5LlkYAXeoiVWXr+vj1PxfYUaNoDcGgnmw3/Y91TXQGgbeICi0y8/h/pxoIUzPJp2oWFvaXG+6LiKSaaDXwhjs6jWI63vKixvTRvincVXQxAsx9igTcm7tZ4E4XBSk2p4oUt3oTBC+o9TwvTD1Wodh075P3kPcE6RGp4WaU7/ELoLblYE1B6obyOTe0TnGHpDQpATDupAby383RGQJwLDyesil7xelNydb9MBU2SyAz8ZUuvzzzYqpG0=
-  file: $OUTPUTDIR/Helium-$TRAVIS_TAG.zip
+  file: "$OUTPUTDIR/Helium-$TRAVIS_TAG.zip"
   skip_cleanup: true
   on:
     repo: stek29/Helium
     tags: true
+after_deploy:
+- openssl aes-256-cbc -K $TRAVIS_ENC_KEY -iv $TRAVIS_ENC_IV -in .travis/dsa_priv.pem.enc -out .travis/dsa_priv.pem -d
